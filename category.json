@@ -1,21 +1,19 @@
 [
-    {
-        "id":"01",
-        "name":"Bedroom Furniture",
-        "img":"https://ibb.co/Dgzzjhw"
-    },
-    {
-        "id":"02",
-        "name":"Dining Furniture",
-        "img":"https://ibb.co/Dgzzjhw"
-    },
-    {
-        "id":"03",
-        "name":"Kitchen Furniture"
-    },
-    {
-        "id":"04",
-        "name":"BathRoom furniture"
-    }
-    
+  
+  {
+    "question": "What are the different ways to manage a state in a React application?",
+    "ans": "There are four main types of state you need to properly manage in your React apps: 1.Local state 2.Global state 3.Server state 4.URL state.Local (UI) state – Local state is data we manage in one or another component.Local state is most often managed in React using the useState hook.Global (UI) state – Global state is data we manage across multiple components. Global state is necessary when we want to get and update data anywhere in our app, or in multiple components at least.Server state – Data that comes from an external server that must be integrated with our UI state.URL state – Data that exists on our URLs, including the pathname and query parameters."
+  },
+  {
+    "question": " How does prototypical inheritance work?",
+    "ans": "The Prototypal Inheritance is a feature in javascript used to add methods and properties in objects. It is a method by which an object can inherit the properties and methods of another object. Traditionally, in order to get and set the [[Prototype]] of an object, we use Object. getPrototypeOf and Object."
+  },
+  {
+    "question": "What is a unit test? Why should we write unit tests?",
+    "ans": "A unit test is a test of the correctness of an individual code module, for example, a test of a method or class. Typically, developers create unit tests for their code as they develop it.."
+  },
+  {
+    "question": "React vs. Angular vs. Vue",
+    "ans": "Angular:AngularJS was developed in 2009 by Google. The first version was Angular.JS. Angular is currently known as a JavaScript framework. Obviously, all significant Google projects have been developed with Angular.Vue:Vue.js is a JavaScript-based progressive framework for creating single-page applications. It was created with scalability and incrementality in mind, as well as ease of integration with other view layer frameworks.React:Facebook released React.js in March 2013 as a JavaScript library. Because React just provides one view, it is not appropriate for building an MVC architecture: you must solve the model and controller yourself. Besides this, there are only advantages and lots of advantages."
+  }
 ]

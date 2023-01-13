@@ -21,6 +21,7 @@ async function run() {
   const categoryProductCollection = client
     .db("second-hand-furniture")
     .collection("catgoryProduct");
+    const blogsCollection=client.db("second-hand-furniture").collection('blogs')
   try {
    app.get('/categories',async(req,res)=>{
     const query={}
@@ -35,6 +36,11 @@ async function run() {
     const result=await cursor.toArray()
     res.send(result)
    
+   })
+   app.get('/blogs',async(req,res)=>{
+    const query={}
+    const result=await blogsCollection.find(query).toArray()
+    res.send(result)
    })
   } finally {
   }
