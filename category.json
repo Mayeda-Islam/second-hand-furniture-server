@@ -1,0 +1,21 @@
+[
+    {
+        "id":"01",
+        "name":"Bedroom Furniture",
+        "img":"https://ibb.co/Dgzzjhw"
+    },
+    {
+        "id":"02",
+        "name":"Dining Furniture",
+        "img":"https://ibb.co/Dgzzjhw"
+    },
+    {
+        "id":"03",
+        "name":"Kitchen Furniture"
+    },
+    {
+        "id":"04",
+        "name":"BathRoom furniture"
+    }
+    
+]
