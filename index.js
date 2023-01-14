@@ -1,7 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 5000;
@@ -44,9 +44,9 @@ async function run() {
   const bookingsCollection = client
     .db("second-hand-furniture")
     .collection("bookings");
-  const addProductCollection = client
+  const productsCollection = client
     .db("second-hand-furniture")
-    .collection("addProduct");
+    .collection("products");
   const usersCollection = client
     .db("second-hand-furniture")
     .collection("users");
@@ -99,16 +99,47 @@ async function run() {
       res.send(result);
     });
 
-    // add product post
-    app.post("/addProduct", async (req, res) => {
+    //post product
+    app.post("/products", async (req, res) => {
       const addProduct = req.body;
-      const result = await addProductCollection.insertOne(addProduct);
+      const result = await productsCollection.insertOne(addProduct);
       res.send(result);
     });
-    // my product
-    app.get("/product", async (req, res) => {
-      const query = {};
-      const result = await addProductCollection.find(query).toArray();
+
+    // Get Products
+    app.get("/products", async (req, res) => {
+      let query = {};
+      const sellerId = req.query.sellerId;
+      const isAdvertising = req.query.isAdvertising;
+      if (sellerId) {
+        query.sellerId = sellerId;
+      }
+      if (isAdvertising === "true") {
+        query.isAdvertising = true;
+      } else if (isAdvertising === "false") {
+        query.isAdvertising = false;
+      }
+      const result = await productsCollection.find(query).toArray();
+      res.send(result);
+    });
+
+    // Update product
+    app.patch("/products/:id", async (req, res) => {
+      const id = req.params.id;
+      const updatedProductData = req.body;
+      const query = { _id: ObjectId(id) };
+      const updateDoc = {
+        $set: updatedProductData,
+      };
+      const result = await productsCollection.updateOne(query, updateDoc);
+      res.send(result);
+    });
+
+    // delete product
+    app.delete("/products/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const result = await productsCollection.deleteOne(query);
       res.send(result);
     });
 
@@ -118,7 +149,13 @@ async function run() {
       const result = await usersCollection.insertOne(users);
       res.send(result);
     });
-    //
+    //advertise product post
+    app.post("/categories/:id", async (req, res) => {
+      const product = req.body;
+      const result = await categoryCollection.insertOne(product);
+      res.send(result);
+    });
+
     app.get("/users-by-email/:email", async (req, res) => {
       const email = req.params.email;
       const query = { email };
