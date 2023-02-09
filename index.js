@@ -22,9 +22,9 @@ function verifyJwt(req, res, next) {
     return res.status(401).send({ message: "unauthorized access" });
   }
   const token = authHeader.split(" ")[1];
-  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
+  jwt.verify(token, process.env.TOKEN, function (err, decoded) {
     if (err) {
-      return res.send(401).send({ message: "unauthorized access" });
+      return res.status(401).send({ message: "unauthorized access" });
     }
     req.decoded = decoded;
     next();
@@ -32,29 +32,18 @@ function verifyJwt(req, res, next) {
 }
 
 async function run() {
-  const categoryCollection = client
-    .db("second-hand-furniture")
-    .collection("categories");
-  const categoryProductCollection = client
-    .db("second-hand-furniture")
-    .collection("catgoryProduct");
-  const blogsCollection = client
-    .db("second-hand-furniture")
-    .collection("blogs");
-  const bookingsCollection = client
-    .db("second-hand-furniture")
-    .collection("bookings");
-  const productsCollection = client
-    .db("second-hand-furniture")
-    .collection("products");
-  const usersCollection = client
-    .db("second-hand-furniture")
-    .collection("users");
+  const SHF_DB = client.db("second-hand-furniture");
+
+  const categoryCollection = SHF_DB.collection("categories");
+  const productsCollection = SHF_DB.collection("products");
+  const blogsCollection = SHF_DB.collection("blogs");
+  const bookingsCollection = SHF_DB.collection("bookings");
+  const usersCollection = SHF_DB.collection("users");
+
   try {
     // jwt post
     app.post("/jwt", (req, res) => {
       const user = req.body;
-      console.log(user);
       const token = jwt.sign(user, process.env.TOKEN, {
         expiresIn: "1h",
       });
@@ -72,12 +61,12 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/categories/:id", async (req, res) => {
+    app.get("/products/category/:id", async (req, res) => {
       const id = req.params.id;
       const filterId = { category_id: id };
-      const cursor = categoryProductCollection.find(filterId);
-      const result = await cursor.toArray();
-      res.send(result);
+      const cursor = productsCollection.find(filterId);
+      const products = await cursor.toArray();
+      res.send(products);
     });
 
     app.get("/blogs", async (req, res) => {
@@ -123,6 +112,23 @@ async function run() {
       res.send(result);
     });
 
+    // update product by adding favorite by user field
+    app.patch("/products/favorite/:productId", async (req, res) => {
+      const productId = req.params.productId;
+      // const userId = req.params.userId;
+      const filter = { _id: ObjectId(productId) };
+      const updateDoc = {
+        $push: {
+          favByUsers: {
+            ...req.body,
+          },
+        },
+      };
+
+      const result = await productsCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
+
     // Update product
     app.patch("/products/:id", async (req, res) => {
       const id = req.params.id;
@@ -148,6 +154,36 @@ async function run() {
       const users = req.body;
       const result = await usersCollection.insertOne(users);
       res.send(result);
+    });
+    // get users
+    app.get("/users", async (req, res) => {
+      const query = {};
+      const users = await usersCollection.find(query).toArray();
+      res.send(users);
+    });
+    // make user admin
+    app.put("/users/role/:id", verifyJwt, async (req, res) => {
+      const email = req.decoded.email;
+      const query = { email };
+      const user = await usersCollection.findOne(query);
+      if (user?.role !== "admin") {
+        return res.status(403).send({ message: "unauthorized access" });
+      } else {
+        const id = req.params.id;
+        const filter = { _id: ObjectId(id) };
+        const options = { upsert: true };
+        const updatedDoc = {
+          $set: {
+            ...req.body,
+          },
+        };
+        const result = await usersCollection.updateOne(
+          filter,
+          updatedDoc,
+          options
+        );
+        res.send(result);
+      }
     });
     //advertise product post
     app.post("/categories/:id", async (req, res) => {
