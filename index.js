@@ -37,8 +37,9 @@ async function run() {
   const categoryCollection = SHF_DB.collection("categories");
   const productsCollection = SHF_DB.collection("products");
   const blogsCollection = SHF_DB.collection("blogs");
-  const bookingsCollection = SHF_DB.collection("bookings");
+  const ordersCollection = SHF_DB.collection("orders");
   const usersCollection = SHF_DB.collection("users");
+  const favByUsersCollection = SHF_DB.collection("favByUsers");
 
   try {
     // jwt post
@@ -61,9 +62,9 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/products/category/:id", async (req, res) => {
-      const id = req.params.id;
-      const filterId = { category_id: id };
+    app.get("/products/category/:categoryId", async (req, res) => {
+      const categoryId = req.params.categoryId;
+      const filterId = { category_id: categoryId };
       const cursor = productsCollection.find(filterId);
       const products = await cursor.toArray();
       res.send(products);
@@ -76,19 +77,38 @@ async function run() {
     });
 
     //  post booking api
-    app.post("/bookings", async (req, res) => {
-      const bookings = req.body;
-      const result = await bookingsCollection.insertOne(bookings);
+    app.post("/orders", async (req, res) => {
+      const orders = req.body;
+      const result = await ordersCollection.insertOne(orders);
       res.send(result);
     });
+    //update orders api
+    app.patch("/orders/:id", async (req, res) => {
+      const id = req.params.id;
+      const updatedOrders = req.body;
+      try {
+        const query = { _id: ObjectId(id) };
+        console.log(updatedOrders);
+        const updateDoc = {
+          $set: updatedOrders,
+        };
+        const result = await ordersCollection.updateOne(query, updateDoc);
+        res.status(200).json(result);
+      } catch (err) {
+        res.status(503).json({
+          status: 503,
+          message: "server error",
+        });
+      }
+    });
     //  get booking api
-    app.get("/bookings", async (req, res) => {
+    app.get("/orders", async (req, res) => {
       const query = {};
-      const result = await bookingsCollection.find(query).toArray();
+      const result = await ordersCollection.find(query).toArray();
       res.send(result);
     });
 
-    //post product
+    // Add product
     app.post("/products", async (req, res) => {
       const addProduct = req.body;
       const result = await productsCollection.insertOne(addProduct);
@@ -112,21 +132,17 @@ async function run() {
       res.send(result);
     });
 
-    // update product by adding favorite by user field
-    app.patch("/products/favorite/:productId", async (req, res) => {
-      const productId = req.params.productId;
-      // const userId = req.params.userId;
-      const filter = { _id: ObjectId(productId) };
-      const updateDoc = {
-        $push: {
-          favByUsers: {
-            ...req.body,
-          },
-        },
-      };
-
-      const result = await productsCollection.updateOne(filter, updateDoc);
-      res.send(result);
+    // //Get product using product id
+    app.get("/products/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
+      console.log(filter);
+      try {
+        const result = await productsCollection.findOne(filter);
+        return res.status(200).json(result);
+      } catch (error) {
+        return res.status(500).json(error);
+      }
     });
 
     // Update product
@@ -141,6 +157,21 @@ async function run() {
       res.send(result);
     });
 
+    // update product by adding favorite by user field
+    // app.patch("/products/favorite/:productId/:userId", async (req, res) => {
+    //   const productId = req.params.productId;
+    //   const userId = req.params.userId;
+    //   const filter = { _id: ObjectId(productId) };
+    //   const updateDoc = {
+    //     $addToSet: {
+    //       favByUsers: userId,
+    //     },
+    //   };
+
+    //   const result = await productsCollection.updateOne(filter, updateDoc);
+    //   res.send(result);
+    // });
+
     // delete product
     app.delete("/products/:id", async (req, res) => {
       const id = req.params.id;
@@ -148,7 +179,14 @@ async function run() {
       const result = await productsCollection.deleteOne(query);
       res.send(result);
     });
-
+    // delete favByUser
+    app.delete("/favorite/:productId/:email", async (req, res) => {
+      const email = req.params.email;
+      const productId = req.params.productId;
+      const filter = { productId, email };
+      const result = await favByUsersCollection.deleteOne(filter);
+      res.send(result);
+    });
     // user post
     app.post("/users", async (req, res) => {
       const users = req.body;
@@ -185,7 +223,7 @@ async function run() {
         res.send(result);
       }
     });
-    //advertise product post
+    //Add new categories
     app.post("/categories/:id", async (req, res) => {
       const product = req.body;
       const result = await categoryCollection.insertOne(product);
@@ -200,6 +238,24 @@ async function run() {
         res.send({ status: true, user });
       } else {
         res.send({ status: false });
+      }
+    });
+    app.post("/favorite", async (req, res) => {
+      const product = req.body;
+      const favorite = await favByUsersCollection.insertOne(product);
+      res.send(favorite);
+    });
+    app.get("/favorite/:email", async (req, res) => {
+      const email = req.params.email;
+      const filter = { email };
+      const result = await favByUsersCollection.find(filter).toArray();
+      res.send(result);
+    });
+    app.get("/favorite", async (req, res) => {
+      const query = {};
+      if (query) {
+        const result = await favByUsersCollection.find(query).toArray();
+        res.send(result);
       }
     });
   } finally {
