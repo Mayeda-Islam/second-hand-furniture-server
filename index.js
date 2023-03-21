@@ -40,7 +40,7 @@ async function run() {
   const ordersCollection = SHF_DB.collection("orders");
   const usersCollection = SHF_DB.collection("users");
   const favByUsersCollection = SHF_DB.collection("favByUsers");
-
+  const reviewsCollection = SHF_DB.collection("reviews");
   try {
     // jwt post
     app.post("/jwt", (req, res) => {
@@ -257,6 +257,18 @@ async function run() {
         const result = await favByUsersCollection.find(query).toArray();
         res.send(result);
       }
+    });
+    app.post("/reviews", async (req, res) => {
+      const dateAndTime = new Date().toLocaleString();
+      const review = { ...req.body, dateAndTime };
+
+      const reviews = await reviewsCollection.insertOne(review);
+      res.send(reviews);
+    });
+    app.get("/reviews", async (req, res) => {
+      const query = {};
+      const reviews = await reviewsCollection.find(query).toArray();
+      res.send(reviews);
     });
   } finally {
   }
